@@ -1,0 +1,361 @@
+<html>
+<head>
+<title>Sample</title>
+<!-- You can find free web fonts for use at http://www.google.com/fonts -->
+<link href='http://fonts.googleapis.com/css?family=Lily+Script+One' rel='stylesheet' type='text/css'>
+<style>
+body
+{
+	margin: 10px;
+	font-family: helvetica, arial, sans-serif;
+}
+
+#ad
+{
+	width:800px;
+	margin:0 auto;
+	box-shadow: 10px 10px 5px #888888;
+	border:1px solid #888888;
+	background-color: #fcfbf7;
+	padding:15px;
+	overflow: hidden;
+	position: relative;
+}
+
+#menu
+{
+	width:800px;
+	margin:0 auto;
+	margin-top:20px;
+	text-align:center;
+	font-size: 10pt;
+}
+
+#headline
+{
+	margin:0 auto;
+	margin-top:20px;
+	margin-bottom:20px;
+	width:80%;
+	font-size: 50pt;
+	font-weight: bold;
+	line-height: 45pt;
+	letter-spacing: -3pt;
+}
+
+#copy
+{
+	margin:0 auto;
+	width:90%;
+	font-size: 11pt;
+	column-count: 3;
+	-moz-column-count:3; /* Firefox */
+	-webkit-column-count:3; /* Safari and Chrome */
+	column-gap: 20px;
+	margin-bottom:10px;
+}
+
+
+#slogan
+{
+	margin-left:80px;
+	font-size: 40pt;
+	font-weight: bold;
+	line-height: 35pt;
+	letter-spacing: -3pt;
+	margin-top:15px;
+	margin-bottom:20px;
+	float:left;
+}
+
+#imagebox
+{
+	width: 100%;
+	height: 450px;
+	overflow: hidden;
+}
+
+#image
+{
+	width: 100%;
+}
+
+#logo
+{
+	float:right;
+	color: #d13926;
+	font-family: 'Lily Script One', sans-serif;
+	font-size: 24pt;
+	border:3px solid #d13926;
+	margin-left:auto;
+	text-align:center;
+	position: absolute; bottom: 20; right: 20;
+}
+
+sup
+{
+	color: #d13926;
+	font-size: 0.5em;
+	font-family: 'Helvetica', 'Arial', sans-serif;
+}
+
+</style>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
+<script src="js/html2canvas.js"></script>
+<script src="js/markov.js"></script>
+<script>
+	//var markov = new Markov({endWithCompleteSentence:true});
+	var WordnikAPIKey = '8489c93205db115a8d93702980e0ce6775085279d0473e1c6';
+	var FlickrAPIKey = 'a5b70b7581be4943ba9ffc68232e1c2e';
+	var nouns;
+	var q;
+
+	// trusty array random picker
+	Array.prototype.pick = function() {
+		return this[Math.floor(Math.random()*this.length)];
+	}
+	String.prototype.toTitleCase = function () {
+    		return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+	};
+	String.prototype.toSentence = function () {
+    		return this.charAt(0).toUpperCase() + this.slice(1);;
+	};
+
+	function cleanCorpus(corpus) {
+		// General cleanup
+		return corpus
+			.replace(/&amp/g, '&')							// escaped ampersand
+			.replace(/\bi\b/g, 'I')							// solo " i " => " I "
+			.replace(/i m/ig, 'I\'m')							// annoying i m thing
+			.replace(/\.\./g, '.')							// double periods
+			.replace(/\brt\b/ig, '')							// rt marker
+			.replace(/[^a-zA-Z0-9 \:.&$\\/'\"]/g, '')			// special/extended chars
+			.replace(/\bhttps?:([a-zA-Z0-9\/.]+)\W/g, '');		// remaining rogue URLs
+	}
+
+	function processTwitterUsersAsCorpus(data) {
+		var corpus = '';
+		console.log("	processing tweets");
+		for (var i=0; i<data.result.length; i++)
+		{
+			var s = data.result[i];
+			var t = s.description.replace(/twitter/ig, q).replace(/tweet/ig, q);
+			var e = s.entities;
+
+			// strip urls
+			if (e.description.urls.length > 0)
+				for (var j=0; j<e.description.urls.length; j++)
+					t = t.replace(e.description.urls[j].url, '');
+			// append the cleaned data to the corpus
+			corpus = corpus + t + " ";
+		}
+		// a little more cleanup
+		return cleanCorpus(corpus);
+	}
+
+	function processTweetsAsCorpus(data) {
+		var corpus = '';
+		console.log("	processing " + data.statuses.length + " tweets");
+		for (var i=0; i<data.statuses.length; i++)
+		{
+			var s = data.statuses[i];
+			var t = s.text;
+			var e = s.entities;
+
+			// strip twitter screen names, hashtags, and urls
+			if (e.urls.length > 0)
+				for (var j=0; j<e.urls.length; j++)
+					t = t.replace(e.urls[j].url, '');
+			t = t.replace(/.@/g, '@');
+			if (e.user_mentions.length > 0)
+				for (var j=0; j<e.user_mentions.length; j++) {
+					t = t.replace("@"+e.user_mentions[j].screen_name, '');
+					// just for kicks, add the user description to the corpus too
+					if (e.user_mentions[j].description !== undefined)
+						t += "" + e.user_mentions[j].description;
+				}
+			if (e.hashtags.length > 0)
+				for (var j=0; j<e.hashtags.length; j++)
+					t = t.replace("#"+e.hashtags[j].text, '');
+
+			// append the cleaned data to the corpus
+			corpus = corpus + t + " ";
+			// add the user description too
+			if (s.user.description !== undefined)
+				corpus += s.user.description + " ";
+		}
+		// a little more cleanup
+		return cleanCorpus(corpus);
+	}
+
+	function getSeedWord()
+	{
+		// clear everything
+		$('#headline').html('');
+		$('#copy').html('');
+		$('#slogan').html('');
+		$('#logo').html('');
+		$('#imagebox').html('');
+		$('#imagebox').append('<img id="image"/>');
+
+		console.log("Fetching seed word...");
+		var minCorpusCount = 100000;
+		$.ajax({
+		  url: "http://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=false&includePartOfSpeech=noun&minCorpusCount=" + minCorpusCount +
+			   "&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=5&maxLength=-1&limit=100&api_key=" + WordnikAPIKey,
+		  success: function(data) {
+			nouns = eval(data);
+			var word = nouns.pick().word;
+			q = word;
+			console.log("	got seed word " + word);
+
+			$('#query').html('');
+			$('#query').append(word);
+
+			generate('cow');
+		  },
+		  async: true,
+		  dataType:"json"
+		});
+	}
+
+	function generate(query)
+	{
+		// IMAGE FOR DISPLAY
+		console.log("Fetching images for subject " + query);
+		$.ajax({
+		  url: 'https://api.flickr.com/services/rest/?method=flickr.photos.search&text=' + query + '&format=json&nojsoncallback=1&sort=relevance&api_key=' + FlickrAPIKey,
+		  success: function(data) {
+			console.log("	got images");
+			// assemble Flickr image URL (as per https://www.flickr.com/services/api/misc.urls.html)
+			var photo = data.photos.photo.pick();
+			var imgUrl = "https://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_d.jpg";
+
+			$('#imagebox').html('');
+			$('#imagebox').append('<img id="image" src="' + imgUrl + '"/>');
+		  },
+		  async: true,
+		  dataType:"json"
+		});
+
+		// BIGRAM FOR SLOGAN
+		var sloganQuery = nouns.pick().word;
+		console.log("Fetching bigram from seed " + sloganQuery);
+		$.ajax({
+		  url: 'http://api.wordnik.com/v4/word.json/' + sloganQuery + '/phrases?limit=100&wlmi=0&useCanonical=true&api_key=' + WordnikAPIKey,
+		  success: function(data) {
+			console.log("	got bigrams");
+			var res = data.pick();
+			var slogan = res.gram1 + " " + res.gram2;
+
+			slogan = slogan.toTitleCase();
+			$('#slogan').html('');
+			$('#slogan').append(slogan + ".<br>" + query.toTitleCase() + ".");
+			$('#logo').html('');
+			$('#logo').append("<div class='logo'>&nbsp;" + query.toTitleCase() + "<sup>&reg;</sup>&nbsp;</div>");
+		  },
+		  async: true,
+		  dataType:"json"
+		});
+
+		// TOP EXAMPLE FOR HEADLINE
+		console.log("Fetching top example from seed " + query);
+		$.ajax({
+		  url: 'http://api.wordnik.com/v4/word.json/' + query + '/topExample?useCanonical=false&api_key=' + WordnikAPIKey,
+		  success: function(data) {
+			console.log("	got top example");
+			var head = data.text.replace(/[^a-zA-Z0-9\s.,$%!?:;\-'"]/g, "");
+			var quip = data.title;
+			console.log(head + " / " + quip);
+
+			$('#headline').html('');
+
+			//If the slogan is short enough, just use it as is.
+			var terminal = ["...", ".", "?", "!"];		// a little flavor at the end
+			var wordCount = head.split(' ').length;
+			if (wordCount <= 25 && head.length <= 100)
+				$('#headline').append(head);
+			//Grab the first phrase if there's a comma or period and it's short enough (100 chars? who knows.)
+			else if (head.indexOf(',') > 20 && head.indexOf(',') < 100)
+			{
+				$('#headline').append(head.substring(0, head.indexOf(',')) + terminal.pick());
+			}
+			else if (head.indexOf('.') > 20 && head.indexOf('.') < 100)
+			{
+				$('#headline').append(head.substring(0, head.indexOf('.')) + ".");
+			}
+			//Otherwise just markov the thing.
+			else
+			{
+				var markov = new Markov(data.text, "string", /[.^\w]+ /g);
+				$('#headline').append(markov.gen((Math.random()*15 + 5)).toSentence() + terminal.pick());
+			}
+		  },
+		  async: true,
+		  dataType:"json"
+		});
+
+		// TWEETS FOR MARKOV CORPUS
+		console.log("Fetching tweets from seed " + query);
+		$.ajax({
+		  url: 'twittersearch.php?type=tweets&q=' + query,
+		  success: function(data) {
+			//var corpus = processTwitterUsersAsCorpus(data);
+			var corpus = processTweetsAsCorpus(data);
+			console.log("	seeded markov corpus");
+
+			var markov = new Markov(corpus, "string", /[.^\w]+ /g);
+			var copy = markov.gen(Math.floor((Math.random()*100 + 100))).toSentence(); 			// generate 100-200 words
+
+			$('#copy').html('');
+			$('#copy').append(copy + ".");
+		  },
+		  error: function (xhr, ajaxOptions, thrownError) {
+        		console.log(xhr.status);
+        		console.log(thrownError);
+      	  },
+		  async: true,
+		  dataType:"json"
+		});
+	}
+
+	var w;
+	function getImage()
+	{
+		w = window.open('about:blank','ad-image','width=10,height=10,location=no,menubar=no,resizable=yes,scrollbars=no,status=no,titlebar=no,toolbar=no');
+		html2canvas(document.getElementById("ad"), {
+			allowTaint: true,
+    			onrendered: function(canvas) {
+        			//document.body.appendChild(canvas);
+				var dataUrl = canvas.toDataURL("image/png");
+				w.location.href = dataUrl;
+				w.resizeTo(canvas.width,canvas.height);
+				w.focus();
+    			}
+		});
+	}
+
+	window.onload=getSeedWord()
+</script>
+
+</head>
+
+<body>
+<div id="ad">
+	<div id="headline"></div>
+	<div id="copy"></div>
+	<div id="imagebox"></div>
+	<div id="footer">
+		<div id="slogan"></div>
+		<div id="logo"></div>
+	</div>
+</div>
+
+<div id="menu">
+	<a href="javascript:getSeedWord();">Hi Flaviu</a> |
+	<a href="javascript:getImage();">get as image</a>
+</div>
+
+</body>
+</html>

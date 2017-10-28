@@ -1,0 +1,181 @@
+<html>
+<head>
+<title>Simple Example</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
+<script src="js/markov.js"></script>
+<script>
+	var WordnikAPIKey = 'YOUR_API_KEY_HERE';
+	var FlickrAPIKey = 'YOUR_API_KEY_HERE';
+	var nouns;
+	var q;
+
+	// trusty array random picker
+	Array.prototype.pick = function() {
+		return this[Math.floor(Math.random()*this.length)];
+	}
+	String.prototype.toTitleCase = function () {
+    		return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+	};
+	String.prototype.toSentence = function () {
+    		return this.charAt(0).toUpperCase() + this.slice(1);;
+	};
+
+	function processTweetsAsCorpus(data) {
+		var corpus = '';
+		console.log("	processing " + data.statuses.length + " tweets");
+		for (var i=0; i<data.statuses.length; i++) 
+		{
+			var s = data.statuses[i];
+			var t = s.text;
+			var e = s.entities;
+
+			// strip twitter screen names, hashtags, and urls
+			if (e.urls.length > 0) 
+				for (var j=0; j<e.urls.length; j++) 
+					t = t.replace(e.urls[j].url, '');
+			t = t.replace(/.@/g, '@');
+			if (e.user_mentions.length > 0) 
+				for (var j=0; j<e.user_mentions.length; j++)
+					t = t.replace("@"+e.user_mentions[j].screen_name, '');
+			if (e.hashtags.length > 0) 
+				for (var j=0; j<e.hashtags.length; j++) 
+					t = t.replace("#"+e.hashtags[j].text, '');
+			
+			// append the cleaned data to the corpus
+			corpus = corpus + t + " ";
+		}  
+		return corpus;
+	}
+
+	function getSeedWord() 
+	{
+		console.log("Fetching seed word...");
+		var minCorpusCount = 100000;
+		$.ajax({
+		  url: "http://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=false&includePartOfSpeech=noun&minCorpusCount=" + minCorpusCount + 			  
+			   "&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=5&maxLength=-1&limit=100&api_key=" + WordnikAPIKey,
+		  success: function(data) {
+			nouns = eval(data);
+			var word = nouns.pick().word;
+			q = word;
+			console.log("	got seed word " + word);
+
+			$('#query').html('');
+			$('#query').append(word);
+
+			generate(word);		
+		  },
+		  async: true,
+		  dataType:"json"
+		});
+	}
+
+	function generate(query)
+	{
+		// IMAGE FOR DISPLAY
+		console.log("Fetching images for subject " + query); 
+		$.ajax({
+		  url: 'https://api.flickr.com/services/rest/?method=flickr.photos.search&text=' + query + '&format=json&nojsoncallback=1&api_key=' + FlickrAPIKey,
+		  success: function(data) {	
+			console.log("	got images");
+			// assemble Flickr image URL (as per https://www.flickr.com/services/api/misc.urls.html)
+			var photo = data.photos.photo.pick();
+			var imgUrl = "https://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_d.jpg";
+			
+			$('#image').html('');
+			$('#image').append('<img src="' + imgUrl + '"/>');
+		  },
+		  async: true,
+		  dataType:"json"
+		});		
+
+		// BIGRAM FOR SLOGAN 
+		var sloganQuery = nouns.pick().word; 
+		console.log("Fetching bigram from seed " + sloganQuery);
+		$.ajax({
+		  url: 'http://api.wordnik.com/v4/word.json/' + sloganQuery + '/phrases?limit=100&wlmi=0&useCanonical=true&api_key=' + WordnikAPIKey,
+		  success: function(data) {	
+			console.log("	got bigrams");
+			var res = data.pick();	
+			var slogan = res.gram1 + " " + res.gram2;
+
+			slogan = slogan.toTitleCase();
+			$('#slogan').html('');
+			$('#slogan').append(slogan + ".<br>" + query.toTitleCase() + ".");
+		  },
+		  async: true,
+		  dataType:"json"
+		});		
+
+		// TOP EXAMPLE FOR HEADLINE 
+		console.log("Fetching top example from seed " + query);
+		$.ajax({
+		  url: 'http://api.wordnik.com/v4/word.json/' + query + '/topExample?useCanonical=false&api_key=' + WordnikAPIKey,
+		  success: function(data) {	
+			console.log("	got top example");
+			var head = data.text.replace(/[^a-zA-Z0-9\s.,$%!?:;\-'"]/g, "");
+			var quip = data.title;
+			console.log(head + " / " + quip);
+
+			$('#headline').html('');
+
+			//If the slogan is short enough, just use it as is.
+			$('#headline').append(head);
+		  },
+		  async: true,
+		  dataType:"json"
+		});		
+	
+		// TWEETS FOR MARKOV CORPUS
+		console.log("Fetching tweets from seed " + query);
+		$.ajax({
+		  // You'll nee to replace this URL with the url to the twitter search on your web space.
+		  url: 'twittersearch.php?type=tweets&q=' + query,
+		  success: function(data) {		
+			//var corpus = processTwitterUsersAsCorpus(data);
+			var corpus = processTweetsAsCorpus(data);
+			console.log("	seeded markov corpus");
+
+			$('#corpus').html('');
+			$('#corpus').append(corpus);
+
+			var markov = new Markov(corpus, "string", /[.^\w]+ /g); 
+			var copy = markov.gen(Math.floor((Math.random()*100 + 100))).toSentence(); 			// generate 100-200 words
+
+			$('#copy').html('');
+			$('#copy').append(copy + ".");
+		  },
+		  error: function (xhr, ajaxOptions, thrownError) {
+        		console.log(xhr.status);
+        		console.log(thrownError);
+      	  },
+		  async: true,
+		  dataType:"json"
+		});
+	}
+	
+	window.onload=getSeedWord()
+</script>
+
+</head>
+
+<body>
+	<h2>Search Term</h2>
+	<div id="query"></div>
+
+	<h2>Headline</h2>
+	<div id="headline"></div>
+
+	<h2>Image</h2>
+	<div id="image"></div>
+
+	<h2>Slogan</h2>
+	<div id="slogan"></div>
+
+	<h2>Copy</h2>
+	<div id="copy"></div>
+
+	<h2>Corpus</h2>
+	<div id="corpus"></div>
+</body>
+</html>

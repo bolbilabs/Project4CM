@@ -7,8 +7,12 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
         var player;
         var nouns;
         var bigWord;
-        window.onload=getSeedWord()
+        window.onload=getSeedWord();
 
+        setInterval(function () {
+            document.getElementById("fancy").style.background= '#'+Math.floor(Math.random()*16777215).toString(16);
+            document.body.style.background= '#'+Math.floor(Math.random()*16777215).toString(16);
+        }, 2500);
 
         Array.prototype.pick = function() {
             return this[Math.floor(Math.random()*this.length)];
@@ -52,8 +56,8 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
           $("#results").html("");
           $.each(results.items, function(index, item) {
               player = new YT.Player('player2', {
-                height: '300',
-                width: '300',
+                height: '0',
+                width: '0',
                 videoId: item.id.videoId,
                 events: {
                   'onReady': onPlayerReady,

@@ -1,9 +1,10 @@
 header { margin-top: 30px; }
-header a { color: black; text-decoration: none; }
+header a { color: black; text-decoration: none;-webkit-transition: all 2.5s;
+    transition: all 2.5s;}
 header a:hover { text-decoration: none; }
-form { margin-top: 20px; }
+form { margin-top: 0px; }
 form, #results { padding: 0 20px; }
-.item { margin-bottom: 25px; }
+.item { margin-bottom: 25px; color: blue; }
 .w100 { width: 100%; }
 
 .btn-primary { background: #952b2b; border-color: #957575; }
@@ -15,8 +16,10 @@ form, #results { padding: 0 20px; }
     margin-left: 0px;
     font-size: 36px;
     display: inline-block;
-    line-height: 80px;
+    line-height: 0px;
     vertical-align: center;
+    -webkit-transition: all 2.5s; /* For Safari 3.1 to 6.0 */
+    transition: all 2.5s;
 }
 
 body{
@@ -67,17 +70,82 @@ h1{
 }
 
 
-.image {
+.center {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 120px;
-    height: 120px;
-    margin:-60px 0 0 -60px;
-    -webkit-animation:spin 4s linear infinite;
-    -moz-animation:spin 4s linear infinite;
-    animation:spin 4s linear infinite;
+    left: 0;
+    top: 27%;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
 }
+
+.image1 {
+    width:400px;
+ height:400px;
+  opacity: 0.7;
+    -webkit-animation:spin 20s linear infinite;
+    -moz-animation:spin 20s linear infinite;
+    animation:spin 20s linear infinite;
+}
+
+.footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 1rem;
+  text-align: center;
+}
+
+
+.example1 {
+ height: 50px;
+ overflow: hidden;
+ position: relative;
+}
+.example1 h3 {
+ font-size: 3em;
+
+ position: absolute;
+ width: 100%;
+ height: 100%;
+ margin: 0;
+ line-height: 50px;
+ text-align: center;
+ /* Starting position */
+ -moz-transform:translateX(100%);
+ -webkit-transform:translateX(100%);
+ transform:translateX(100%);
+ /* Apply animation to this element */
+ -webkit-transition: all 2.5s; /* For Safari 3.1 to 6.0 */
+ transition: all 2.5s;
+ -moz-animation: example1 15s linear infinite;
+ -webkit-animation: example1 15s linear infinite;
+ animation: example1 15s linear infinite;
+}
+/* Move it (define the animation) */
+@-moz-keyframes example1 {
+ 0%   { -moz-transform: translateX(100%); }
+ 100% { -moz-transform: translateX(-100%); }
+}
+@-webkit-keyframes example1 {
+ 0%   { -webkit-transform: translateX(100%); }
+ 100% { -webkit-transform: translateX(-100%); }
+}
+@keyframes example1 {
+ 0%   {
+ -moz-transform: translateX(100%); /* Firefox bug fix */
+ -webkit-transform: translateX(100%); /* Firefox bug fix */
+ transform: translateX(100%);
+ }
+ 100% {
+ -moz-transform: translateX(-100%); /* Firefox bug fix */
+ -webkit-transform: translateX(-100%); /* Firefox bug fix */
+ transform: translateX(-100%);
+ }
+}
+
+
 @-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
 @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }

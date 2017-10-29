@@ -1,5 +1,7 @@
 function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{(.*?)\}\}/g,function(e,r){return t[n][r]})}return res}
         var WordnikAPIKey = '8489c93205db115a8d93702980e0ce6775085279d0473e1c6';
+        var FlickrAPIKey = 'a5b70b7581be4943ba9ffc68232e1c2e';
+
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -7,10 +9,14 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
         var player;
         var nouns;
         var bigWord;
+        var consistentColor;
+        var permit = false;
         window.onload=getSeedWord();
 
         setInterval(function () {
-            document.getElementById("fancy").style.background= '#'+Math.floor(Math.random()*16777215).toString(16);
+            consistentColor = '#'+Math.floor(Math.random()*16777215).toString(16);
+            document.getElementById("fancy").style.color= consistentColor;
+            document.getElementById("fancy2").style.color= consistentColor;
             document.body.style.background= '#'+Math.floor(Math.random()*16777215).toString(16);
         }, 2500);
 
@@ -33,10 +39,33 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
                 q = word;
                 console.log("	got seed word " + word);
                 bigWord = word.capitalize();
-                document.getElementById("output").innerHTML=bigWord;              },
+                document.getElementById("output").innerHTML=bigWord;
+                generate(bigWord);
+            permit = true;              },
               async: true,
               dataType:"json"
             });
+        }
+
+        function generate(query)
+    	{
+    		// IMAGE FOR DISPLAY
+    		console.log("Fetching images for subject " + query);
+    		$.ajax({
+    		  url: 'https://api.flickr.com/services/rest/?method=flickr.photos.search&text=' + query + '&format=json&nojsoncallback=1&sort=relevance&api_key=' + FlickrAPIKey,
+    		  success: function(data) {
+    			console.log("	got images");
+    			// assemble Flickr image URL (as per https://www.flickr.com/services/api/misc.urls.html)
+    			var photo = data.photos.photo.pick();
+    			var imgUrl = "https://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_d.jpg";
+                console.log(imgUrl);
+
+                document.getElementById("sampleimage1").src = imgUrl;
+
+    		  },
+    		  async: true,
+    		  dataType:"json"
+    		});
         }
 
     function onYouTubeIframeAPIReady() {
@@ -56,7 +85,7 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
           $("#results").html("");
           $.each(results.items, function(index, item) {
               player = new YT.Player('player2', {
-                height: '0',
+                height: '1',
                 width: '0',
                 videoId: item.id.videoId,
                 events: {
@@ -89,6 +118,11 @@ function init() {
 
 
     gapi.client.load("youtube", "v3", function() {
-            onYouTubeIframeAPIReady()
+        if (permit) {
+            onYouTubeIframeAPIReady();
+        }
+        if (!permit) {
+            init();
+        }
     });
 }

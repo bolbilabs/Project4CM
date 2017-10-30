@@ -86,24 +86,24 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
        request.execute(function(response) {
           var results = response.result;
           $("#results").html("");
-          $.each(results.items, function(index, item) {
               player = new YT.Player('player2', {
                 height: '400',
                 width: '400',
-                videoId: item.id.videoId,
+                videoId: results.items[0].id.videoId,
                 events: {
                   'onReady': onPlayerReady,
                   'onStateChange': onPlayerStateChange
                 }
           });
-          console.log(item.id.videoId);
-          videoIdList.push(item.id.videoId);
-          videoName.push(item.snippet.title);
-          console.log(item.snippet.title);
+        $.each(results.items, function(index, item) {
+            console.log(item.id.videoId);
+            videoIdList.push(item.id.videoId);
+            videoName.push(item.snippet.title);
+            console.log(item.snippet.title);
+        });
           document.getElementById("currentTitle").innerHTML=videoName[0];
           //console.log(player);
           resetVideoHeight();
-       });
        console.log(videoIdList);
     });
 }

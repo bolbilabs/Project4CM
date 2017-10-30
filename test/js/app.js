@@ -9,6 +9,9 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
         var player;
         var nouns;
         var bigWord;
+        var videoName = [];
+        var videoIdList = [];
+        var videoIndex = 0;
         var consistentColor;
         var permit = false;
         window.onload=getSeedWord();
@@ -75,7 +78,7 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
             part: "snippet",
             type: "video",
             q: bigWord + " music",
-            maxResults: 1,
+            maxResults: 50,
             order: "relevance",
             publishedAfter: "2010-01-01T00:00:00Z"
        });
@@ -85,16 +88,23 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
           $("#results").html("");
           $.each(results.items, function(index, item) {
               player = new YT.Player('player2', {
-                height: '1',
-                width: '0',
+                height: '400',
+                width: '400',
                 videoId: item.id.videoId,
                 events: {
                   'onReady': onPlayerReady,
                   'onStateChange': onPlayerStateChange
                 }
           });
+          console.log(item.id.videoId);
+          videoIdList.push(item.id.videoId);
+          videoName.push(item.snippet.title);
+          console.log(item.snippet.title);
+          document.getElementById("currentTitle").innerHTML=videoName[0];
+          //console.log(player);
           resetVideoHeight();
        });
+       console.log(videoIdList);
     });
 }
 
@@ -104,14 +114,20 @@ function resetVideoHeight() {
 }
 
 function onPlayerReady(event) {
+
   event.target.playVideo();
   //player.seekTo(0, true);
 }
 function onPlayerStateChange(event) {
   if (event.data == YT.PlayerState.ENDED) {
-      event.target.playVideo();
+      //event.target.loadVideoById("Vw4KVoEVcr0", 0, "default");
+      console.log(player);
+      player.loadVideoById("Vw4KVoEVcr0", 0, "default");
+    videoIndex++;
   }
 }
+
+
 
 function init() {
     gapi.client.setApiKey("AIzaSyBZyYgmaK8pHWd2ry6sCMODh7w3-Ju4YG8");

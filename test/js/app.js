@@ -11,6 +11,7 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
         var bigWord;
         var videoName = [];
         var videoIdList = [];
+        var photolist = [];
         var videoIndex = 0;
         var consistentColor;
         var permit = false;
@@ -59,11 +60,8 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
     		  success: function(data) {
     			console.log("	got images");
     			// assemble Flickr image URL (as per https://www.flickr.com/services/api/misc.urls.html)
-    			var photo = data.photos.photo.pick();
-    			var imgUrl = "https://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_d.jpg";
-                console.log(imgUrl);
-
-                document.getElementById("sampleimage1").src = imgUrl;
+                photolist = data.photos;
+                document.getElementById("sampleimage1").src = "https://farm" + photolist.photo[videoIndex].farm + ".staticflickr.com/" + photolist.photo[videoIndex].server + "/" + photolist.photo[videoIndex].id + "_" + photolist.photo[videoIndex].secret + "_d.jpg";
 
     		  },
     		  async: true,
@@ -87,8 +85,8 @@ function tplawesome(e,t){res=e;for(var n=0;n<t.length;n++){res=res.replace(/\{\{
           var results = response.result;
           $("#results").html("");
               player = new YT.Player('player2', {
-                height: '400',
-                width: '400',
+                height: '0',
+                width: '0',
                 videoId: results.items[0].id.videoId,
                 events: {
                   'onReady': onPlayerReady,
@@ -119,11 +117,16 @@ function onPlayerReady(event) {
   //player.seekTo(0, true);
 }
 function onPlayerStateChange(event) {
-  if (event.data == YT.PlayerState.ENDED) {
-      //event.target.loadVideoById("Vw4KVoEVcr0", 0, "default");
-      console.log(player);
-      player.loadVideoById("Vw4KVoEVcr0", 0, "default");
-    videoIndex++;
+    if (event.data == YT.PlayerState.ENDED) {
+        //event.target.loadVideoById("Vw4KVoEVcr0", 0, "default");
+        console.log(player);
+        videoIndex++;
+        if (videoIndex >= videoIdList.length) {
+            videoIndex = 0;
+        }
+        player.loadVideoById(videoIdList[videoIndex]);
+        document.getElementById("currentTitle").innerHTML=videoName[videoIndex];
+        document.getElementById("sampleimage1").src = "https://farm" + photolist.photo[videoIndex].farm + ".staticflickr.com/" + photolist.photo[videoIndex].server + "/" + photolist.photo[videoIndex].id + "_" + photolist.photo[videoIndex].secret + "_d.jpg";
   }
 }
 

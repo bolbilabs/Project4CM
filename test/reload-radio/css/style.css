@@ -1,0 +1,171 @@
+header { margin-top: 30px; }
+header a { color: black; text-decoration: none;-webkit-transition: all 2.5s;
+transition: all 2.5s;}
+header a:hover { text-decoration: none; }
+form { margin-top: 0px; }
+form, #results { padding: 0 20px; }
+.item { margin-bottom: 25px; color: blue; }
+.w100 { width: 100%; }
+
+.btn-primary { background: #952b2b; border-color: #957575; }
+.btn-primary:hover, .btn-primary:active, .btn-primary:focus { background: #782b2b;  border-color: #952b2b; }
+
+.logo p{
+    margin:0;
+    padding:0;
+    margin-left: 0px;
+    font-size: 36px;
+    display: inline;
+    line-height: 0px;
+    vertical-align: center;
+    -webkit-transition: all 2.5s; /* For Safari 3.1 to 6.0 */
+    transition: all 2.5s;
+}
+
+body{
+    background: #AC8;
+    padding: 2em;
+    text-align: center;
+    font-weight:bolder;
+    -webkit-transition: all 2.5s; /* For Safari 3.1 to 6.0 */
+    transition: all 2.5s;
+}
+h1{
+    color:#727272;
+}
+
+.bordered {
+    color: #234;
+    display: inline-block;
+    font-size: 3em;
+    padding: 1em;
+    background: white;
+    background-clip: padding-box;
+    border: 4px dotted white;
+    position: relative;
+    z-index: 1;
+    -webkit-transition: all 2.5s; /* For Safari 3.1 to 6.0 */
+    transition: all 2.5s;
+}
+
+.bordered:before,
+.bordered:after {
+    border: inherit;
+    border-width: 2px;
+    content: '';
+    left: -6px;
+    right: -6px;
+    top: -6px;
+    bottom: -6px;
+    position: absolute;
+    z-index: -1;
+}
+
+.bordered:after {
+    border-width: 1px;
+    border-radius: 4px;
+    left: -7px;
+    right: -7px;
+    top: -7px;
+    bottom: -7px;
+}
+
+.center {
+    position: absolute;
+    left: 0;
+    top: 27%;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+}
+
+.image1 {
+    width:400px;
+    height:400px;
+    border-radius: 50%;
+    opacity: 0.7;
+    -webkit-animation:spin 20s linear infinite;
+    -moz-animation:spin 20s linear infinite;
+    animation:spin 20s linear infinite;
+}
+
+.footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+    text-align: center;
+}
+
+.example1 {
+    height: 50px;
+    overflow: hidden;
+    position: relative;
+}
+.example1 h3 {
+    padding:0;
+    margin-left: 0px;
+    font-size: 3em;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    line-height: 50px;
+    text-align: center;
+    /* Starting position */
+    -moz-transform:translateX(100%);
+    -webkit-transform:translateX(100%);
+    transform:translateX(100%);
+    /* Apply animation to this element */
+    -webkit-transition: all 2.5s; /* For Safari 3.1 to 6.0 */
+    transition: all 2.5s;
+    -moz-animation: example1 15s linear infinite;
+    -webkit-animation: example1 15s linear infinite;
+    animation: example1 15s linear infinite;
+}
+/* Move it (define the animation) */
+@-moz-keyframes example1 {
+    0%   { -moz-transform: translateX(100%); }
+    100% { -moz-transform: translateX(-100%); }
+}
+@-webkit-keyframes example1 {
+    0%   { -webkit-transform: translateX(100%); }
+    100% { -webkit-transform: translateX(-100%); }
+}
+@keyframes example1 {
+    0%   {
+        -moz-transform: translateX(100%); /* Firefox bug fix */
+        -webkit-transform: translateX(100%); /* Firefox bug fix */
+        transform: translateX(100%);
+    }
+    100% {
+        -moz-transform: translateX(-100%); /* Firefox bug fix */
+        -webkit-transform: translateX(-100%); /* Firefox bug fix */
+        transform: translateX(-100%);
+    }
+}
+
+/* Spins the image (define the animation) */
+@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+canvas {
+    position: absolute;
+    z-index: 1000;
+    top: 40%;
+    left: 0%;
+    -webkit-transition: all 2.5s; /* For Safari 3.1 to 6.0 */
+    transition: all 2.5s;
+}
+
+.right {
+    position: absolute;
+    z-index: 1000;
+    top: 40%;
+    left: auto;
+    right: 0%;
+    -webkit-transition: all 2.5s; /* For Safari 3.1 to 6.0 */
+    transition: all 2.5s;
+}
